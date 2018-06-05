@@ -1876,12 +1876,13 @@ HoneyBADGER$methods(
 #' Summarize results
 #'
 #' @name HoneyBADGER_summarizeResults
-#' @param geneBased Boolean of whether to summarize gene-based results
-#' @param alleleBased Boolean of whether to summarize allele-based results
-#' @param min.num.cells CNV must be present in this minimum number of cells
+#' @param geneBased Boolean of whether to summarize gene-based results.
+#' @param alleleBased Boolean of whether to summarize allele-based results.
+#' @param min.num.cells CNV must be present in this minimum number of cells. (default: 2)
+#' @param prob.th Probability threshold for filtering regions. (default: 0.75)
 #' 
 HoneyBADGER$methods(
-    summarizeResults=function(geneBased=TRUE, alleleBased=FALSE, min.num.cells=2) {
+    summarizeResults=function(geneBased, alleleBased, min.num.cells=2, prob.th=0.75) {
         if(geneBased & !alleleBased) {
             rgs <- cnvs[['gene-based']][['all']]
             retest <- results[['gene-based']]
@@ -1889,23 +1890,26 @@ HoneyBADGER$methods(
             del.gexp.prob <- do.call(rbind, lapply(retest, function(x) x[[2]]))
             
             ## filter to regions with at least some highly confident cells
-            vi1 <- rowSums(amp.gexp.prob > 0.75) > min.num.cells
-            amp.gexp.prob <- amp.gexp.prob[vi1,] ## amplifications
-            vi2 <- rowSums(del.gexp.prob > 0.75) > min.num.cells
-            del.gexp.prob <- del.gexp.prob[vi2,] ## amplifications
+            vi1 <- rowSums(amp.gexp.prob > prob.th) > min.num.cells
+            amp.gexp.prob.filt <- amp.gexp.prob[vi1,] ## amplifications
+            vi2 <- rowSums(del.gexp.prob > prob.th) > min.num.cells
+            del.gexp.prob.filt <- del.gexp.prob[vi2,] ## deletions
             
-            names <- apply(as.data.frame(rgs), 1, paste0, collapse=":")
-            rownames(amp.gexp.prob) <- paste0('amp', names[vi1])
-            rownames(del.gexp.prob) <- paste0('del', names[vi2])
-            ret <- rbind(del.gexp.prob, amp.gexp.prob)
+            ##names <- apply(as.data.frame(rgs), 1, paste0, collapse=":")
+            ##if(any(vi1)) rownames(amp.gexp.prob.filt) <- paste0('amp', names[vi1])
+            ##if(any(vi2)) rownames(del.gexp.prob.filt) <- paste0('del', names[vi2])
+            ret <- rbind(del.gexp.prob.filt, amp.gexp.prob.filt)
+            
             cnvs[['gene-based']][['amp']] <<- rgs[vi1]
             cnvs[['gene-based']][['del']] <<- rgs[vi2]
             summary[['gene-based']] <<- ret
             
-            colnames(amp.gexp.prob) <- paste0('amp.gexp.', colnames(amp.gexp.prob))
-            colnames(del.gexp.prob) <- paste0('del.gexp.', colnames(del.gexp.prob))
-            df <- cbind(as.data.frame(rgs), avg.amp.gexp=rowMeans(amp.gexp.prob), avg.del.gexp=rowMeans(del.gexp.prob), amp.gexp.prob, del.gexp.prob)
+            ##colnames(amp.gexp.prob) <- paste0('amp.gexp.', colnames(amp.gexp.prob))
+            ##colnames(del.gexp.prob) <- paste0('del.gexp.', colnames(del.gexp.prob))
+            ##df <- cbind(as.data.frame(rgs), avg.amp.gexp=rowMeans(amp.gexp.prob), avg.del.gexp=rowMeans(del.gexp.prob), amp.gexp.prob, del.gexp.prob)
             
+            rgs.df <- as.data.frame(c(rgs[vi2], rgs[vi1]))
+            df <- cbind(rgs.df, type=c(rep("deletion",sum(vi2)), rep("amplification",sum(vi1))), avg.gexp.prob=rowMeans(ret), ret)
         }
         if(alleleBased & !geneBased) {
             rgs <- cnvs[['allele-based']][['all']]
@@ -1913,8 +1917,8 @@ HoneyBADGER$methods(
             del.loh.allele.prob <- do.call(rbind, lapply(retest, function(x) x))
             
             ## filter to regions with at least some highly confident cells
-            vi1 <- rowSums(del.loh.allele.prob > 0.75) > min.num.cells
-            del.loh.allele.prob <- del.loh.allele.prob[vi1,] ## amplifications
+            vi1 <- rowSums(del.loh.allele.prob > prob.th) > min.num.cells
+            del.loh.allele.prob <- del.loh.allele.prob[vi1,] ## deletions
             
             names <- apply(as.data.frame(rgs), 1, paste0, collapse=":")
             rownames(del.loh.allele.prob) <- paste0('del.loh.', names[vi1])
@@ -1932,10 +1936,10 @@ HoneyBADGER$methods(
             del.comb.prob <- do.call(rbind, lapply(retest, function(x) x[[2]]))
             
             ## filter to regions with at least some highly confident cells
-            vi1 <- rowSums(amp.comb.prob > 0.75) > min.num.cells
+            vi1 <- rowSums(amp.comb.prob > prob.th) > min.num.cells
             amp.comb.prob <- amp.comb.prob[vi1,] ## amplifications
-            vi2 <- rowSums(del.comb.prob > 0.75) > min.num.cells
-            del.comb.prob <- del.comb.prob[vi2,] ## amplifications
+            vi2 <- rowSums(del.comb.prob > prob.th) > min.num.cells
+            del.comb.prob <- del.comb.prob[vi2,] ## deletions
             
             names <- apply(as.data.frame(rgs), 1, paste0, collapse=":")
             rownames(amp.comb.prob) <- paste0('amp', names[vi1])
@@ -1946,9 +1950,12 @@ HoneyBADGER$methods(
             cnvs[['combine-based']][['del']] <<- rgs[vi2]
             summary[['combine-based']] <<- ret
             
-            colnames(amp.comb.prob) <- paste0('amp.comb.', colnames(amp.comb.prob))
-            colnames(del.comb.prob) <- paste0('del.comb.', colnames(del.comb.prob))
-            df <- cbind(as.data.frame(rgs), avg.amp.comb=rowMeans(amp.comb.prob), avg.del.comb=rowMeans(del.comb.prob), amp.comb.prob, del.comb.prob)
+            ##colnames(amp.comb.prob) <- paste0('amp.comb.', colnames(amp.comb.prob))
+            ##colnames(del.comb.prob) <- paste0('del.comb.', colnames(del.comb.prob))
+            ##df <- cbind(as.data.frame(rgs), avg.amp.comb=rowMeans(amp.comb.prob), avg.del.comb=rowMeans(del.comb.prob), amp.comb.prob, del.comb.prob)
+            
+            rgs.df <- as.data.frame(c(rgs[vi2], rgs[vi1]))
+            df <- cbind(rgs.df, type=c(rep("deletion",sum(vi2)), rep("amplification",sum(vi1))), avg.comb.prob=rowMeans(ret), ret)
         }
         return(df)
     }
