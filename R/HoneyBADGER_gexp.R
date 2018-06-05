@@ -104,12 +104,12 @@ setGexpMats=function(gexp.sc.init, gexp.ref.init, mart.obj, filter=TRUE, minMean
 #'
 #' @param gexp.norm Normalized gene expression matrix
 #' @param genes GRanges annotation of gene names and coordinates
-#' @param chrs Chromosomes to be plotted (default: paste0('chr', c(1:22, 'X')))
+#' @param chrs Chromosomes to be plotted (default: paste0('chr', c(1:22)))
 #' @param region Optional GenomicRanges region of interest such as expected CNV boundaries. (default: NULL)
 #' @param window.size Window size for sliding window mean. Must be odd number. (default: 101)
 #' @param zlim Limit for plotting heatmap (default: c(-2,2))
-#' @param widths Widths of chromosomes in plot. If 'set' will depend on number of genes in region. Else will be equal.
 #' @param cellOrder Order of cells. If 'set' will be automatically ordered by clustering. Else will be same order as input.
+#' @param widths Widths of chromosomes in plot. If 'set' will depend on number of genes in region. Else will be equal.
 #' 
 #' @examples 
 #' data(gexp)

@@ -190,13 +190,14 @@ HoneyBADGER$methods(
 #'
 #' @name HoneyBADGER_plotGexpProfile
 #' @param gexp.norm.sub Optional normalized gene expression matrix. If not provided, internal normalized gene expression matrix is used.
-#' @param chrs Chromosomes to be plotted (default: paste0('chr', c(1:22, 'X')))
+#' @param chrs Chromosomes to be plotted (default: paste0('chr', c(1:22)))
+#' @param region Optional GenomicRanges region of interest such as expected CNV boundaries. (default: NULL)
 #' @param window.size Window size for sliding window mean. Must be odd number. (default: 101)
 #' @param zlim Limit for plotting heatmap (default: c(-2,2))
 #' @param setOrder Boolean for whether or not to order cells (default: FALSE)
 #' @param setWidths Boolean for whether or not to adjust widths of chomosomes based on number of genes. Otherwise uniform size. (default: FALSE)
-#' @param order Order of cells (default: NULL)
-#' @param defailt Boolean for whether to return detailed smoothed profiles (default: FALSE)
+#' @param cellOrder Order of cells (default: NULL)
+#' @param returnPlot Boolean for whether to return detailed smoothed profiles (default: FALSE)
 #' 
 #' @examples 
 #' data(gexp)
