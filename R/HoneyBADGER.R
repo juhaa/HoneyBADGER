@@ -1966,8 +1966,8 @@ HoneyBADGER$methods(
 #' @name HoneyBADGER_visualizeResults
 #' @param geneBased Boolean whether to use gene-based results summary
 #' @param alleleBased Boolean whether to use allele-based results summary
-#' @param hc hclust object for cells. If NA or number of cells == 1, no clustering.
-#' @param vc hclust object for CNVs. If NA or number of CNVs == 1, no clustering.
+#' @param hc hclust object for cells. If NA or number of cells < 3, no clustering.
+#' @param vc hclust object for CNVs. If NA or number of CNVs < 3, no clustering.
 #' @param power Parameter to tweak clustering by weighing posterior probabilities
 #' @param details Boolean whether to return details
 #' @param ... Additional parameters to pass to heatmap
@@ -1980,8 +1980,8 @@ HoneyBADGER$methods(
     if(alleleBased & geneBased) df <- summary[['combine-based']]
     
     ## visualize as heatmap 
-    if(nrow(df) == 1) hc <- NA
-    if(ncol(df) == 1) vc <- NA
+    if(nrow(df) < 3) hc <- NA
+    if(ncol(df) < 3) vc <- NA
     if(is.null(hc)) hc <- hclust(dist(t(df^(power))), method='ward.D')
     if(class(hc) == "hclust") hc <- as.dendrogram(hc)
     if(is.null(vc)) vc <- hclust(dist(df^(power)), method='ward.D')
