@@ -1966,34 +1966,28 @@ HoneyBADGER$methods(
 #' @name HoneyBADGER_visualizeResults
 #' @param geneBased Boolean whether to use gene-based results summary
 #' @param alleleBased Boolean whether to use allele-based results summary
-#' @param hc hclust object for cells
-#' @param vc hclust object for CNVs
+#' @param hc hclust object for cells. If NA or number of cells == 1, no clustering.
+#' @param vc hclust object for CNVs. If NA or number of CNVs == 1, no clustering.
 #' @param power Parameter to tweak clustering by weighing posterior probabilities
 #' @param details Boolean whether to return details
 #' @param ... Additional parameters to pass to heatmap
 #' 
 HoneyBADGER$methods(
   visualizeResults=function(geneBased=TRUE, alleleBased=FALSE, hc=NULL, vc=NULL, power=1, details=FALSE, ...) {
-    if(geneBased & !alleleBased) {
-      df <- summary[['gene-based']]
-    }
-    if(alleleBased & !geneBased) {
-      df <- summary[['allele-based']]
-    }
-    if(alleleBased & geneBased) {
-      df <- summary[['combine-based']]   
-    }
+    ## get posterior probabilities
+    if(geneBased & !alleleBased) df <- summary[['gene-based']]
+    if(alleleBased & !geneBased) df <- summary[['allele-based']]
+    if(alleleBased & geneBased) df <- summary[['combine-based']]
     
     ## visualize as heatmap 
-    if(is.null(hc)) {
-      hc <- hclust(dist(t(df^(power))), method='ward.D')
-    } 
-    if(is.null(vc)) {
-      vc <- hclust(dist(df^(power)), method='ward.D')
-    } 
-    heatmap(t(df), Colv=as.dendrogram(vc), Rowv=as.dendrogram(hc), scale="none", col=colorRampPalette(c('beige', 'grey', 'black'))(100), ...)
-    if(details) {
-      return(list(hc=hc, vc=vc))
-    }
+    if(nrow(df) == 1) hc <- NA
+    if(ncol(df) == 1) vc <- NA
+    if(is.null(hc)) hc <- hclust(dist(t(df^(power))), method='ward.D')
+    if(class(hc) == "hclust") hc <- as.dendrogram(hc)
+    if(is.null(vc)) vc <- hclust(dist(df^(power)), method='ward.D')
+    if(class(vc) == "hclust") hc <- as.dendrogram(vc)
+    heatmap(t(df), Colv=vc, Rowv=hc, scale="none", col=colorRampPalette(c('beige', 'grey', 'black'))(100), ...)
+    
+    if(details) return(list(hc=hc, vc=vc))
   }
 )
