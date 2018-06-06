@@ -216,6 +216,10 @@ HoneyBADGER$methods(
             gexp.norm <- gexp.norm.sub
             genes <- genes[rownames(gexp.norm.sub)]
         }
+        if(!is.null(region) & length(region) == 0) {
+          cat("WARNING! 'region' contains 0 regions. Setting region=NULL")
+          region <- NULL
+        }
         if(!is.null(region)) {
           overlap <- IRanges::findOverlaps(region, genes)
           ## which of the ranges did the position hit
